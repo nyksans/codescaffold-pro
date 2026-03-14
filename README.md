@@ -144,4 +144,3 @@ Contributions are welcome.
 ---
 
 
-Adding those can make **CodeScaffold Pro look like a real startup tool instead of a college project**.
