@@ -15,56 +15,50 @@ window.UML = (function(){
     panel.classList.add("visible")
   }
 
-  function renderDetails(nodeId,mode){
+  function renderDetails(nodeId, mode){
     if (!contentEl) return
 
     const node = (GRAPH_DATA.nodes || []).find(n => n.id === nodeId)
-    const structure = GRAPH_DATA.structure || {}
-
-    const fileInfo = structure[nodeId] || {}
-
-    const layer = fileInfo.layer || fileInfo.type || "Unknown layer"
-    const imports = fileInfo.imports || []
-    const exports = fileInfo.exports || []
-
-    const modeLabel = mode === "preview" ? "Preview" : "Selected"
-
+    const uml = node.umlDetails || { classes: [] }
+    
     titleEl.textContent = nodeId
+    let html = `<div class="sectionTitle">${mode === "preview" ? "Previewing" : "Selected"} File</div>`
 
-    let html = ""
-    html += '<div class="sectionTitle">'+modeLabel+' node</div>'
-    html += "<div>"+layer+"</div>"
-
-    if (imports.length){
-      html += '<div class="sectionTitle">Imports</div>'
-      html += "<code>"+imports.join("\\n")+"</code>"
-    }
-
-    if (exports.length){
-      html += '<div class="sectionTitle">Exports</div>'
-      html += "<code>"+exports.join("\\n")+"</code>"
-    }
-
-    if (!imports.length && !exports.length){
-      html += '<p class="placeholder">No additional metadata is available for this node.</p>'
+    if (uml.classes.length === 0) {
+      html += '<p class="placeholder">No classes or methods detected in this file.</p>'
+    } else {
+      uml.classes.forEach(cls => {
+        html += `
+          <div style="border: 1px solid #475569; margin-bottom: 15px; background: #1e293b;">
+            <div style="background: #334155; padding: 5px; text-align: center; border-bottom: 1px solid #475569;">
+              <b>${cls.name}</b>
+            </div>
+            <div style="padding: 5px; font-size: 0.85em; color: #cbd5e1; border-bottom: 1px dashed #475569;">
+              ${cls.attributes.map(attr => `<div>+ ${attr}</div>`).join("") || "<i>(no attributes)</i>"}
+            </div>
+            <div style="padding: 5px; font-size: 0.85em; color: #fbbf24;">
+              ${cls.methods.map(m => `<div>+ ${m}()</div>`).join("") || "<i>(no methods)</i>"}
+            </div>
+          </div>
+        `
+      })
     }
 
     contentEl.innerHTML = html
   }
 
   function showNodeDetails(nodeId){
-    renderDetails(nodeId,"selected")
+    renderDetails(nodeId, "selected")
     ensureOpen()
   }
 
   function previewNode(nodeId){
-    // only update text, don't force panel visible if user hid it
     if (!panel.classList.contains("visible")) return
-    renderDetails(nodeId,"preview")
+    renderDetails(nodeId, "preview")
   }
 
   function clearPreview(){
-    // no-op for now to keep last context
+    // Keeping content to avoid flickering
   }
 
   return {
