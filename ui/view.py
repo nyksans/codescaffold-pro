@@ -17,7 +17,7 @@ def get_uml_structure(file_path):
                 for n in node.body:
                     if isinstance(n, ast.Assign):
                         for target in n.targets:
-                            if hasattr(target, 'id'):
+                            if isinstance(target, ast.Name):
                                 attributes.append(target.id)
                 
                 structure["classes"].append({
