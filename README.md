@@ -10,7 +10,9 @@
 It helps developers quickly **understand complex codebases** by converting repository structures into **interactive architecture graphs**.
 
 
-
+![Architecture Diagram](ui/home (1).png)
+![Architecture Diagram](ui/home (2).png)
+![Architecture Diagram](ui/home (3).png)
 
 ---
 
