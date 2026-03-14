@@ -140,7 +140,7 @@ Contributions are welcome.
 
 ---
 
-## UI Preview
+## Preview
 
 ![Home Screen](ui/home-1.png)
 
