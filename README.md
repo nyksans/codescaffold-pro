@@ -9,15 +9,6 @@
 
 It helps developers quickly **understand complex codebases** by converting repository structures into **interactive architecture graphs**.
 
-
-## UI Preview
-
-![Home Screen](ui/home-1.png)
-
-![Graph View](ui/home-2.png)
-
-![Architecture View](ui/home-3.png)
-
 ---
 
 # Features
@@ -149,4 +140,10 @@ Contributions are welcome.
 
 ---
 
+## UI Preview
 
+![Home Screen](ui/home-1.png)
+
+![Graph View](ui/home-2.png)
+
+![Architecture View](ui/home-3.png)
