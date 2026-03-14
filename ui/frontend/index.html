@@ -1,182 +1,698 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <title>CodeScaffold Graph</title>
 
-<meta charset="utf-8">
+  <!-- Vis Network -->
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 
-<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <!-- Styles (inlined so Streamlit can render without static files) -->
+  <style>
+    body{
+      margin:0;
+      background:#020617;
+      overflow:hidden;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+      color:#e5e7eb;
+    }
 
-<style>
+    /* workspace */
 
-body{
-margin:0;
-background:#020617;
-overflow:hidden;
-font-family:Inter;
-}
+    #app{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+    }
 
-#app{
-position:fixed;
-top:0;
-left:0;
-width:100vw;
-height:100vh;
-}
+    /* top toolbar */
 
-#graphCanvas{
-position:absolute;
-width:100%;
-height:100%;
+    #topBar{
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:52px;
+      padding:0 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:linear-gradient(to bottom,rgba(15,23,42,0.92),rgba(15,23,42,0.6));
+      border-bottom:1px solid rgba(148,163,184,0.25);
+      backdrop-filter:blur(16px);
+      z-index:20;
+    }
 
-background-color:#020617;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
 
-background-image:
-radial-gradient(circle at 1px 1px,#1e293b 1px,transparent 0),
-radial-gradient(circle at 1px 1px,#111827 1px,transparent 0);
+    .brand-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:radial-gradient(circle at 30% 30%,#38bdf8,#0ea5e9);
+      box-shadow:0 0 12px rgba(56,189,248,0.9);
+    }
 
-background-size:24px 24px,120px 120px;
-}
+    .brand-title{
+      font-weight:600;
+      letter-spacing:0.04em;
+    }
 
-/* minimap */
+    .brand-subtitle{
+      font-size:12px;
+      color:#9ca3af;
+    }
 
-#minimap{
-position:absolute;
-bottom:20px;
-right:20px;
+    .toolbar-actions{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
 
-width:240px;
-height:180px;
+    .toolbar-input{
+      width:220px;
+      max-width:32vw;
+      border:1px solid rgba(148,163,184,0.35);
+      background:rgba(2,6,23,0.65);
+      color:#e5e7eb;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      outline:none;
+    }
 
-border:1px solid #334155;
-border-radius:6px;
+    .toolbar-input::placeholder{
+      color:rgba(229,231,235,0.55);
+    }
 
-background:#020617;
-}
+    .toolbar-btn{
+      border:1px solid rgba(148,163,184,0.4);
+      background:rgba(15,23,42,0.8);
+      color:#e5e7eb;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:4px;
+      transition:background 0.16s ease,border-color 0.16s ease,transform 0.08s ease;
+    }
 
-</style>
+    .toolbar-btn:hover{
+      background:rgba(30,64,175,0.9);
+      border-color:#60a5fa;
+      transform:translateY(-1px);
+    }
 
+    .toolbar-btn:active{
+      transform:translateY(0);
+    }
+
+    /* main graph */
+
+    #graphCanvas{
+      position:absolute;
+      top:52px;
+      left:0;
+      right:0;
+      bottom:0;
+
+      background-color:#020617;
+
+      background-image:
+        radial-gradient(circle at 1px 1px,#1f2937 1px,transparent 0),
+        radial-gradient(circle at 1px 1px,#0f172a 1px,transparent 0);
+
+      background-size:24px 24px,120px 120px;
+    }
+
+    /* UML panel */
+
+    #umlPanel{
+      position:absolute;
+      top:68px;
+      right:20px;
+
+      width:280px;
+      max-height:60vh;
+
+      display:flex;
+      flex-direction:column;
+
+      background:radial-gradient(circle at top,rgba(79,70,229,0.3),rgba(15,23,42,0.96));
+      border-radius:14px;
+      border:1px solid rgba(129,140,248,0.6);
+      box-shadow:
+        0 20px 50px rgba(15,23,42,0.95),
+        0 0 0 1px rgba(15,23,42,0.7);
+
+      color:#e5e7eb;
+      overflow:hidden;
+      z-index:18;
+
+      opacity:0;
+      transform:translateY(8px);
+      pointer-events:none;
+      transition:opacity 0.15s ease,transform 0.15s ease;
+    }
+
+    /* Fullscreen: give more breathing room */
+    #app.isFullscreen #umlPanel{
+      max-height:72vh;
+    }
+
+    #umlPanel.visible{
+      opacity:1;
+      transform:translateY(0);
+      pointer-events:auto;
+    }
+
+    #umlHeader{
+      height:32px;
+      padding:0 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      background:linear-gradient(to right,rgba(30,64,175,0.95),rgba(129,140,248,0.95));
+      border-bottom:1px solid rgba(165,180,252,0.6);
+    }
+
+    #umlTitle{
+      font-weight:600;
+    }
+
+    #umlClose{
+      border:none;
+      background:transparent;
+      color:#e5e7eb;
+      cursor:pointer;
+      font-size:13px;
+      padding:2px 4px;
+    }
+
+    #umlContent{
+      padding:10px 12px 12px;
+      font-size:12px;
+      overflow:auto;
+    }
+
+    #umlContent .placeholder{
+      color:#9ca3af;
+      font-style:italic;
+    }
+
+    #umlContent .sectionTitle{
+      margin-top:6px;
+      margin-bottom:2px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      color:#a5b4fc;
+    }
+
+    #umlContent code{
+      font-family:ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:11px;
+      background:rgba(15,23,42,0.9);
+      border-radius:4px;
+      display:block;
+      padding:4px 6px;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    /* UML class box */
+    .umlClassBox{
+      border:1px solid rgba(209,213,219,0.9);
+      border-radius:6px;
+      background:rgba(15,23,42,0.95);
+      box-shadow:0 10px 25px rgba(15,23,42,0.8);
+      overflow:hidden;
+    }
+
+    .umlClassHeader{
+      padding:4px 6px;
+      text-align:center;
+      font-weight:600;
+      border-bottom:1px solid rgba(209,213,219,0.8);
+    }
+
+    .umlClassStereotype{
+      font-size:10px;
+      color:#9ca3af;
+      display:block;
+    }
+
+    .umlClassSection{
+      padding:4px 6px;
+      border-top:1px solid rgba(55,65,81,0.9);
+      font-family:ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:11px;
+    }
+
+    .umlClassSectionTitle{
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      color:#a5b4fc;
+      margin-bottom:2px;
+    }
+
+    .umlClassSection ul{
+      margin:0;
+      padding-left:16px;
+      list-style:none;
+    }
+
+    .umlClassSection li::before{
+      content:"";
+      display:inline-block;
+      width:4px;
+      height:4px;
+      border-radius:999px;
+      background:#60a5fa;
+      margin-right:6px;
+    }
+
+  </style>
 </head>
-
 <body>
+  <div id="app">
+    <!-- Top toolbar -->
+    <div id="topBar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-title">CodeScaffold</span>
+        <span class="brand-subtitle">Architecture Graph</span>
+      </div>
+      <div class="toolbar-actions">
+        <input id="nodeSearch" class="toolbar-input" placeholder="Search file/node…" />
+        <button id="btn-search" class="toolbar-btn">Find</button>
+        <button id="btn-center" class="toolbar-btn">Center graph</button>
+        <button id="btn-physics" class="toolbar-btn">Physics: off</button>
+        <button id="btn-fullscreen" class="toolbar-btn">Fullscreen</button>
+        <button id="btn-zoom-in" class="toolbar-btn">+</button>
+        <button id="btn-zoom-out" class="toolbar-btn">−</button>
+      </div>
+    </div>
 
-<div id="app">
+    <!-- Graph canvas -->
+    <div id="graphCanvas"></div>
 
-<div id="graphCanvas"></div>
-<div id="minimap"></div>
+    <!-- UML side panel -->
+    <div id="umlPanel">
+      <div id="umlHeader">
+        <span id="umlTitle">Node details</span>
+        <button id="umlClose">✕</button>
+      </div>
+      <div id="umlContent">
+        <p class="placeholder">Hover or click a node to see details.</p>
+      </div>
+    </div>
+  </div>
 
-</div>
+  <!-- App scripts (inlined so everything works inside Streamlit iframe) -->
+  <script>
+    // Graph data from Python
+    const GRAPH_DATA = __GRAPH_DATA__;
+    window.GRAPH_DATA = GRAPH_DATA;
 
-<script>
+    // Global app state
+    window.AppState = {
+      graph:null,
+      nodes:null,
+      edges:null,
+      selectedNode:null
+    };
 
-const GRAPH_DATA = __GRAPH_DATA__
+    // UML / node details panel
+    window.UML = (function(){
+      const panel = document.getElementById("umlPanel");
+      const titleEl = document.getElementById("umlTitle");
+      const contentEl = document.getElementById("umlContent");
+      const closeBtn = document.getElementById("umlClose");
 
-const nodes = new vis.DataSet(GRAPH_DATA.nodes)
-const edges = new vis.DataSet(GRAPH_DATA.edges)
+      if (closeBtn && panel){
+        closeBtn.onclick = function(){
+          panel.classList.remove("visible");
+        };
+      }
 
-/* MAIN GRAPH */
+      function ensureOpen(){
+        if (!panel) return;
+        panel.classList.add("visible");
+      }
 
-const network = new vis.Network(
-document.getElementById("graphCanvas"),
-{nodes:nodes,edges:edges},
-{
+      function renderDetails(nodeId,mode){
+        if (!contentEl) return;
 
-nodes:{
+        const structure = GRAPH_DATA.structure || {};
 
-borderWidth:2,
-borderWidthSelected:3,
+        const fileInfo = structure[nodeId] || {};
+        const classes = fileInfo.classes || [];
+        const functions = fileInfo.functions || [];
 
-color:{
-background:"#0f172a",
-border:"#60a5fa",
+        // Dependencies can be inferred from graph edges
+        const deps = (GRAPH_DATA.edges || [])
+          .filter(e => e.from === nodeId)
+          .map(e => e.to);
 
-highlight:{
-background:"#0f172a",
-border:"#38bdf8"
-},
+        const modeLabel = mode === "preview" ? "Preview" : "Selected";
 
-hover:{
-background:"#0f172a",
-border:"#93c5fd"
-}
+        // derive a UML-style class name from file path
+        const parts = String(nodeId || "").split(/[\\/]/);
+        const rawName = parts[parts.length-1] || "Unnamed";
+        const className = rawName.replace(/\.[^/.]+$/,"");
 
-},
+        titleEl.textContent = className;
 
-font:{
-color:"#e5e7eb",
-face:"monospace",
-size:13
-}
+        let html = "";
+        html += '<div class="umlClassBox">';
+        html += '  <div class="umlClassHeader">';
+        html += '    <span class="umlClassStereotype">&laquo;file&raquo;</span>';
+        html +=      className;
+        html += '  </div>';
 
-},
+        // attributes section (classes/functions)
+        html += '  <div class="umlClassSection">';
+        html += '    <div class="umlClassSectionTitle">Attributes</div>';
+        if (classes.length || functions.length){
+          html += '    <ul>';
+          classes.forEach(c => {
+            html += '<li>+ '+c+' : class</li>';
+          });
+          functions.forEach(f => {
+            html += '<li>+ '+f+'()</li>';
+          });
+          html += '    </ul>';
+        }else{
+          html += '    <div>(none)</div>';
+        }
+        html += '  </div>';
 
-layout:{
-improvedLayout:true
-},
+        // dependencies section
+        html += '  <div class="umlClassSection">';
+        html += '    <div class="umlClassSectionTitle">Dependencies</div>';
+        if (deps.length){
+          html += '    <ul>';
+          deps.slice(0,40).forEach(d => {
+            html += '<li>&rarr; '+d+'</li>';
+          });
+          if (deps.length > 40){
+            html += '<li>… +'+(deps.length-40)+' more</li>';
+          }
+          html += '    </ul>';
+        }else{
+          html += '    <div>(none)</div>';
+        }
+        html += '  </div>';
 
-physics:{
-barnesHut:{
-gravitationalConstant:-6000,
-springLength:160,
-springConstant:0.04,
-damping:0.09
-},
-minVelocity:0.75
-},
+        html += '</div>';
 
-interaction:{
-zoomView:true,
-dragView:true,
-hover:true
-}
+        if (modeLabel === "Preview"){
+          html = '<div class="sectionTitle">Preview node</div>' + html;
+        }else{
+          html = '<div class="sectionTitle">Selected node</div>' + html;
+        }
 
-}
-)
+        contentEl.innerHTML = html;
+      }
 
-/* center graph */
+      function showNodeDetails(nodeId){
+        renderDetails(nodeId,"selected");
+        ensureOpen();
+      }
 
-network.once("stabilizationIterationsDone",function(){
-network.fit({animation:true})
-})
+      function previewNode(nodeId){
+        // only update text, don't force panel visible if user hid it
+        if (!panel.classList.contains("visible")) return;
+        renderDetails(nodeId,"preview");
+      }
 
-/* minimap */
+      function clearPreview(){
+        // keep last context
+      }
 
-const mini = new vis.Network(
-document.getElementById("minimap"),
-{
-nodes:new vis.DataSet(GRAPH_DATA.nodes),
-edges:new vis.DataSet(GRAPH_DATA.edges)
-},
-{
-physics:false,
-interaction:false
-}
-)
+      return {
+        showNodeDetails,
+        previewNode,
+        clearPreview
+      };
+    })();
 
-/* minimap navigation */
+    // Main graph with atom-like physics
+    function initGraph(){
+      const nodes = new vis.DataSet(GRAPH_DATA.nodes);
+      const edges = new vis.DataSet(GRAPH_DATA.edges);
 
-document.getElementById("minimap").addEventListener("mousemove",function(e){
+      AppState.nodes = nodes;
+      AppState.edges = edges;
 
-const rect=this.getBoundingClientRect()
+      const container = document.getElementById("graphCanvas");
 
-const x=(e.clientX-rect.left)/rect.width
-const y=(e.clientY-rect.top)/rect.height
+      const network = new vis.Network(
+        container,
+        {nodes:nodes,edges:edges},
+        {
+          nodes:{
+            borderWidth:2,
+            borderWidthSelected:3,
+            shape:"dot",
+            size:14,
+            color:{
+              background:"#020617",
+              border:"#60a5fa",
+              highlight:{
+                background:"#020617",
+                border:"#38bdf8"
+              },
+              hover:{
+                background:"#020617",
+                border:"#93c5fd"
+              }
+            },
+            font:{
+              color:"#e5e7eb",
+              face:"monospace",
+              size:13
+            }
+          },
+          edges:{
+            color:{
+              color:"#475569",
+              highlight:"#93c5fd"
+            },
+            smooth:{
+              type:"dynamic"
+            }
+          },
+          layout:{
+            improvedLayout:true,
+            randomSeed:42
+          },
+          // physics toggled only while user interacts
+          physics:{
+            enabled:false,
+            solver:"barnesHut",
+            barnesHut:{
+              gravitationalConstant:-8000,
+              centralGravity:0.25,
+              springLength:180,
+              springConstant:0.04,
+              damping:0.14,
+              avoidOverlap:0.8
+            },
+            stabilization:false
+          },
+          interaction:{
+            dragView:true,
+            zoomView:true,
+            hover:true
+          }
+        }
+      );
 
-network.moveTo({
+      AppState.graph = network;
+      AppState.physicsPinnedOn = false;
+      AppState._physicsTimer = null;
 
-position:{
-x:(x-0.5)*4000,
-y:(y-0.5)*4000
-},
+      // initial fit once to center the galaxy layout
+      network.fit({animation:{duration:500,easing:"easeOutCubic"}});
 
-animation:false
+      // toolbar controls
+      const btnCenter = document.getElementById("btn-center");
+      const btnPhysics = document.getElementById("btn-physics");
+      const btnFullscreen = document.getElementById("btn-fullscreen");
+      const btnZoomIn = document.getElementById("btn-zoom-in");
+      const btnZoomOut = document.getElementById("btn-zoom-out");
+      const btnSearch = document.getElementById("btn-search");
+      const searchInput = document.getElementById("nodeSearch");
 
-})
+      if (btnCenter){
+        btnCenter.onclick = function(){
+          network.fit({animation:{duration:450,easing:"easeInOutQuad"}});
+        };
+      }
 
-})
+      function zoom(factor){
+        const scale = network.getScale();
+        network.moveTo({
+          scale:scale*factor,
+          animation:{duration:250,easing:"easeInOutQuad"}
+        });
+      }
 
-</script>
+      if (btnZoomIn){
+        btnZoomIn.onclick = function(){ zoom(1.2); };
+      }
+      if (btnZoomOut){
+        btnZoomOut.onclick = function(){ zoom(0.8); };
+      }
 
+      function setPhysicsEnabled(enabled){
+        network.setOptions({
+          physics:{
+            enabled:enabled
+          }
+        });
+      }
+
+      function bumpPhysics(ms){
+        if (AppState.physicsPinnedOn) return;
+        setPhysicsEnabled(true);
+        if (AppState._physicsTimer) clearTimeout(AppState._physicsTimer);
+        AppState._physicsTimer = setTimeout(function(){
+          setPhysicsEnabled(false);
+        },ms);
+      }
+
+      if (btnPhysics){
+        btnPhysics.onclick = function(){
+          AppState.physicsPinnedOn = !AppState.physicsPinnedOn;
+          btnPhysics.textContent = AppState.physicsPinnedOn ? "Physics: on" : "Physics: off";
+          setPhysicsEnabled(AppState.physicsPinnedOn);
+        };
+      }
+
+      if (btnFullscreen){
+        btnFullscreen.onclick = async function(){
+          const app = document.getElementById("app");
+          try{
+            if (!document.fullscreenElement){
+              await document.documentElement.requestFullscreen();
+              if (app) app.classList.add("isFullscreen");
+              btnFullscreen.textContent = "Exit fullscreen";
+            }else{
+              await document.exitFullscreen();
+              if (app) app.classList.remove("isFullscreen");
+              btnFullscreen.textContent = "Fullscreen";
+            }
+          }catch(e){
+            // ignore if fullscreen blocked
+          }
+        };
+      }
+
+      function findAndFocus(query){
+        const q = String(query || "").trim().toLowerCase();
+        if (!q) return;
+        const all = GRAPH_DATA.nodes || [];
+        const match = all.find(n => String(n.id).toLowerCase().includes(q)) || all.find(n => String(n.label||"").toLowerCase().includes(q));
+        if (!match) return;
+        const id = match.id;
+        network.selectNodes([id]);
+        network.focus(id,{scale:1.2,animation:{duration:450,easing:"easeInOutQuad"}});
+        if (window.UML && typeof window.UML.showNodeDetails === "function"){
+          window.UML.showNodeDetails(id);
+        }
+        bumpPhysics(1200);
+      }
+
+      if (btnSearch){
+        btnSearch.onclick = function(){
+          findAndFocus(searchInput ? searchInput.value : "");
+        };
+      }
+      if (searchInput){
+        searchInput.addEventListener("keydown",function(e){
+          if (e.key === "Enter") findAndFocus(searchInput.value);
+        });
+      }
+
+      // node selection hooks for UML
+      network.on("click",function(params){
+        if (params.nodes && params.nodes.length){
+          const id = params.nodes[0];
+          AppState.selectedNode = id;
+          if (window.UML && typeof window.UML.showNodeDetails === "function"){
+            window.UML.showNodeDetails(id);
+          }
+          bumpPhysics(1200);
+        }
+      });
+
+      network.on("hoverNode",function(params){
+        if (window.UML && typeof window.UML.previewNode === "function"){
+          window.UML.previewNode(params.node);
+        }
+        bumpPhysics(800);
+      });
+
+      network.on("blurNode",function(){
+        if (window.UML && typeof window.UML.clearPreview === "function"){
+          window.UML.clearPreview();
+        }
+      });
+
+      // enable soft "atom" physics only while dragging nodes
+      network.on("dragStart",function(){
+        if (AppState._physicsTimer) clearTimeout(AppState._physicsTimer);
+        setPhysicsEnabled(true);
+      });
+
+      network.on("dragEnd",function(){
+        // let things settle briefly, then freeze (unless pinned on)
+        bumpPhysics(1200);
+      });
+
+      // Keyboard navigation for large graphs (arrows / WASD)
+      window.addEventListener("keydown",function(e){
+        const key = e.key.toLowerCase();
+        const arrows = ["arrowup","arrowdown","arrowleft","arrowright"];
+        if (!["w","a","s","d"].includes(key) && !arrows.includes(key)) return;
+
+        const current = network.getViewPosition();
+        const scale = network.getScale();
+        const step = 250/scale;
+
+        let dx = 0;
+        let dy = 0;
+
+        if (key === "w" || key === "arrowup") dy -= step;
+        if (key === "s" || key === "arrowdown") dy += step;
+        if (key === "a" || key === "arrowleft") dx -= step;
+        if (key === "d" || key === "arrowright") dx += step;
+
+        network.moveTo({
+          position:{x:current.x+dx,y:current.y+dy},
+          animation:{duration:120,easing:"easeInOutQuad"}
+        });
+      });
+    }
+
+    // Boot the UI
+    window.onload = function(){
+      initGraph();
+    };
+  </script>
 </body>
-
 </html>

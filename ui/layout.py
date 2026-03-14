@@ -25,7 +25,7 @@ def theme_toggle():
     if "theme_mode" not in st.session_state:
         st.session_state.theme_mode = "dark"
 
-    col1, col2 = st.columns([6,1])
+    col1, col2 = st.columns([7,1])
 
     with col2:
 
@@ -44,6 +44,6 @@ def layout_columns():
     Create main UI layout columns.
     """
 
-    left, center, right = st.columns([2,6,2])
+    left, center, right = st.columns([2,7,3])
 
     return left, center, right

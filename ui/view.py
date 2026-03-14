@@ -74,4 +74,6 @@ def render_graph(graph, structure, layers, entry_points):
 
     html = html.replace("__GRAPH_DATA__", graph_data)
 
-    components.html(html, height=1000, scrolling=False)
+    # Keep the component compact so users don't have to page-scroll
+    # just to reach overlays like the minimap or UML panel.
+    components.html(html, height=620, scrolling=False)
