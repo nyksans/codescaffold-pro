@@ -1,4 +1,3 @@
-
 # CodeScaffold Pro
 
 ## Overview
@@ -8,6 +7,8 @@
 The goal of the project is to help developers quickly **explore complex codebases**, understand **project architecture**, and visualize relationships between components such as modules, files, and dependencies.
 
 Modern software repositories often grow large and difficult to navigate. CodeScaffold Pro solves this by automatically **parsing repository structures** and converting them into **interactive visual graphs** that represent the architecture of the project.
+
+
 
 With its intuitive interface, developers can easily inspect how different parts of a project connect and identify important architectural layers such as:
 
