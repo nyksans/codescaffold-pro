@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+<style>
+
+body{
+margin:0;
+background:#020617;
+overflow:hidden;
+font-family:Inter;
+}
+
+#app{
+position:fixed;
+top:0;
+left:0;
+width:100vw;
+height:100vh;
+}
+
+#graphCanvas{
+position:absolute;
+width:100%;
+height:100%;
+
+background-color:#020617;
+
+background-image:
+radial-gradient(circle at 1px 1px,#1e293b 1px,transparent 0),
+radial-gradient(circle at 1px 1px,#111827 1px,transparent 0);
+
+background-size:24px 24px,120px 120px;
+}
+
+/* minimap */
+
+#minimap{
+position:absolute;
+bottom:20px;
+right:20px;
+
+width:240px;
+height:180px;
+
+border:1px solid #334155;
+border-radius:6px;
+
+background:#020617;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="app">
+
+<div id="graphCanvas"></div>
+<div id="minimap"></div>
+
+</div>
+
+<script>
+
+const GRAPH_DATA = __GRAPH_DATA__
+
+const nodes = new vis.DataSet(GRAPH_DATA.nodes)
+const edges = new vis.DataSet(GRAPH_DATA.edges)
+
+/* MAIN GRAPH */
+
+const network = new vis.Network(
+document.getElementById("graphCanvas"),
+{nodes:nodes,edges:edges},
+{
+
+nodes:{
+
+borderWidth:2,
+borderWidthSelected:3,
+
+color:{
+background:"#0f172a",
+border:"#60a5fa",
+
+highlight:{
+background:"#0f172a",
+border:"#38bdf8"
+},
+
+hover:{
+background:"#0f172a",
+border:"#93c5fd"
+}
+
+},
+
+font:{
+color:"#e5e7eb",
+face:"monospace",
+size:13
+}
+
+},
+
+layout:{
+improvedLayout:true
+},
+
+physics:{
+barnesHut:{
+gravitationalConstant:-6000,
+springLength:160,
+springConstant:0.04,
+damping:0.09
+},
+minVelocity:0.75
+},
+
+interaction:{
+zoomView:true,
+dragView:true,
+hover:true
+}
+
+}
+)
+
+/* center graph */
+
+network.once("stabilizationIterationsDone",function(){
+network.fit({animation:true})
+})
+
+/* minimap */
+
+const mini = new vis.Network(
+document.getElementById("minimap"),
+{
+nodes:new vis.DataSet(GRAPH_DATA.nodes),
+edges:new vis.DataSet(GRAPH_DATA.edges)
+},
+{
+physics:false,
+interaction:false
+}
+)
+
+/* minimap navigation */
+
+document.getElementById("minimap").addEventListener("mousemove",function(e){
+
+const rect=this.getBoundingClientRect()
+
+const x=(e.clientX-rect.left)/rect.width
+const y=(e.clientY-rect.top)/rect.height
+
+network.moveTo({
+
+position:{
+x:(x-0.5)*4000,
+y:(y-0.5)*4000
+},
+
+animation:false
+
+})
+
+})
+
+</script>
+
+</body>
+
+</html>
