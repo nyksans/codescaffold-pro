@@ -1,238 +1,147 @@
+
 # CodeScaffold Pro
 
-## Overview
+![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-App-red.svg)
+![Status](https://img.shields.io/badge/Status-Active-success)
 
-**CodeScaffold Pro** is a powerful development framework designed to **analyze, visualize, and understand software repositories** through an interactive web interface built with **Python and Streamlit**.
+**CodeScaffold Pro** is a developer tool that **analyzes and visualizes software repositories** using an interactive **graph-based architecture viewer** built with **Python and Streamlit**.
 
-The goal of the project is to help developers quickly **explore complex codebases**, understand **project architecture**, and visualize relationships between components such as modules, files, and dependencies.
-
-Modern software repositories often grow large and difficult to navigate. CodeScaffold Pro solves this by automatically **parsing repository structures** and converting them into **interactive visual graphs** that represent the architecture of the project.
+It helps developers quickly **understand complex codebases** by converting repository structures into **interactive architecture graphs**.
 
 
 
-With its intuitive interface, developers can easily inspect how different parts of a project connect and identify important architectural layers such as:
-
-* Frontend components
-* Backend services
-* Data processing layers
-* APIs and integrations
-* Utility modules
-
-This makes the framework especially useful for:
-
-* Learning unfamiliar codebases
-* Codebase documentation
-* Software architecture analysis
-* Hackathons and rapid prototyping
-* Developer onboarding
-
-By combining **repository parsing, visualization, and interactive exploration**, CodeScaffold Pro provides developers with a powerful tool to **understand software structure faster and more effectively**.
 
 ---
 
-# Key Features
+# Features
 
-### Repository Structure Analysis
+* **Repository Structure Analysis**
+  Automatically parses project folders and files.
 
-Automatically scans and analyzes a project repository to extract its structural components.
+* **Interactive Architecture Graph**
+  Visualizes modules and relationships using dynamic graphs.
 
-### Interactive Graph Visualization
+* **Layer-based Architecture View**
+  Organizes components into logical layers:
 
-Displays the repository architecture as a **dynamic graph visualization**, allowing users to see relationships between modules and files.
+  * Frontend
+  * Backend
+  * Database
+  * Services
+  * Utilities
 
-### Layer-based Architecture View
+* **Interactive Node Exploration**
+  Click nodes to explore dependencies and relationships.
 
-Organizes project components into logical layers such as:
+* **Scalable Visualization**
+  Designed to handle large repositories.
 
-* Frontend
-* Backend
-* Database
-* Services
-* Utilities
-
-This helps developers quickly understand how the project is structured.
-
-### Dynamic Navigation
-
-Users can explore nodes in the graph to inspect connections and dependencies between components.
-
-### Scalable Architecture Exploration
-
-Designed to handle **large repositories** while keeping visualization clean and interactive.
-
-### Developer-Friendly Interface
-
-Built using **Streamlit**, providing a clean and responsive web interface that allows easy interaction without complex setup.
+* **Streamlit Web Interface**
+  Clean and lightweight interface for easy interaction.
 
 ---
 
-# Streamlit Setup
+# Architecture
 
-## 1. Install Streamlit
+```
+Repository
+   │
+   ▼
+Repository Parser
+   │
+   ▼
+Graph Builder
+   │
+   ▼
+Visualization Engine
+   │
+   ▼
+Streamlit Interface
+```
 
-You can install Streamlit using pip:
+**Core Components**
+
+| Module               | Description                             |
+| -------------------- | --------------------------------------- |
+| Repository Parser    | Extracts structure from the repository  |
+| Graph Builder        | Converts structure into nodes and edges |
+| Visualization Engine | Generates interactive graph layouts     |
+| Streamlit UI         | Provides the web dashboard              |
+
+---
+
+# Installation
+
+Clone the repository:
 
 ```bash
-pip install streamlit
+git clone https://github.com/yourusername/codescaffold-pro.git
+cd codescaffold-pro
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
 ```
 
 ---
 
-## 2. Create a new Python file
+# Running the Application
 
-Create a Python file (for example `app.py`) where your Streamlit application will run.
-
----
-
-## 3. Basic Streamlit App Example
-
-```python
-import streamlit as st
-
-st.title('Hello, CodeScaffold Pro!')
-st.write('This is your application powered by Streamlit.')
-```
-
----
-
-## 4. Run the Streamlit App
-
-Use the following command:
+Start the Streamlit app:
 
 ```bash
 streamlit run app.py
 ```
 
-This will launch the application locally in your browser.
+The application will launch in your browser.
 
 ---
 
-# Configuration
+# Deployment
 
-Modify the configuration settings inside the `config.toml` file to customize your application.
+### Streamlit Community Cloud
 
-Common configurations include:
-
-* Application theme
-* Page layout
-* App title
-* Performance settings
-
-Example configuration options:
-
-* Dark/light theme
-* Wide layout
-* Custom UI styling
-
-For deployment environments, ensure all required **environment variables** are configured in your hosting platform.
-
----
-
-# Hosting Instructions
-
-## 1. Using Streamlit Sharing
-
-1. Go to
-   [https://share.streamlit.io/](https://share.streamlit.io/)
-
-2. Sign in with your GitHub account
-
-3. Create a new app by providing:
-
-   * Repository URL
-   * Main file path (e.g., `app.py`)
-
-4. Deploy the application
-
-After deployment, you will receive a **public URL** for your app.
-
----
-
-## 2. Using Heroku
-
-### Step 1 — Create requirements.txt
-
-Include dependencies like:
-
-```
-streamlit
-pandas
-networkx
-matplotlib
-```
-
-### Step 2 — Create a Heroku app
-
-```bash
-heroku create your-app-name
-```
-
-### Step 3 — Deploy with Git
-
-```bash
-git push heroku main
-```
-
-Your application will then be available via a **public Heroku URL**.
-
----
-
-# Project Architecture
-
-CodeScaffold Pro follows a modular architecture to keep the project maintainable and scalable.
-
-Typical project components include:
-
-### Repository Parser
-
-Responsible for analyzing project folders and extracting structure.
-
-### Graph Builder
-
-Transforms parsed data into nodes and edges representing relationships.
-
-### Visualization Engine
-
-Generates the interactive graph using visualization libraries.
-
-### Streamlit Interface
-
-Provides the frontend dashboard where users interact with the system.
+1. Push project to GitHub
+2. Go to [https://share.streamlit.io](https://share.streamlit.io)
+3. Select repository
+4. Set **Main File Path** → `app.py`
+5. Deploy
 
 ---
 
 # Use Cases
 
-CodeScaffold Pro can be used in multiple scenarios:
-
-* Understanding unfamiliar GitHub repositories
-* Visualizing large project architectures
+* Understanding unfamiliar repositories
 * Developer onboarding
-* Code documentation
-* Educational tools for software architecture
-* Hackathon project exploration tools
+* Architecture visualization
+* Codebase documentation
+* Hackathon tools
+* Educational demonstrations
 
 ---
 
-# Future Improvements
-
-Planned enhancements for CodeScaffold Pro include:
+# Future Roadmap
 
 * AI-powered code analysis
 * Dependency impact visualization
-* Multi-repository architecture comparison
-* Automatic documentation generation
-* Enhanced graph physics and layout optimization
+* Architecture change tracking
+* Multi-repository comparisons
 * Exportable architecture diagrams
 
 ---
 
-# Conclusion
+# Contributing
 
-CodeScaffold Pro simplifies the process of exploring and understanding complex software repositories by turning them into **interactive visual architectures**.
+Contributions are welcome.
 
-By combining **repository parsing, graph visualization, and an easy-to-use Streamlit interface**, the framework enables developers to gain insights into project structure quickly and efficiently.
+1. Fork the repository
+2. Create a new branch
+3. Submit a pull request
+
+---
 
 
-
-(which makes it look like a **real industry-level open source project**).
+Adding those can make **CodeScaffold Pro look like a real startup tool instead of a college project**.
